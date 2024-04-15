@@ -24,3 +24,13 @@ def programa3():
             a = a + 1
         pergunta = input('Deseja continuar? [S/N] ')
 
+def programa4():
+    for i in range(1, 11):
+        if i == 4:
+            break
+        print(f"{i}")
+
+    for i in range(1, 11):
+        if i == 4:
+            continue
+        print(f"{i}")
