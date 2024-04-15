@@ -34,3 +34,18 @@ def programa4():
         if i == 4:
             continue
         print(f"{i}")
+
+def programa5():
+    soma = 0
+    num = 1
+    while num != 0:
+        num = int(input('Digite um número: '))
+        soma = soma + num
+        if num == 0:
+            break
+    print(f'A soma dos números digitados é {soma}')
+
+def programa6():
+    num = int(input('Digite um número: '))
+    for i in range(0, 11):
+        print(f'{num} x {i} = {num * i}')
