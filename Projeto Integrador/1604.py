@@ -37,13 +37,34 @@ for game in games:
     else:
         print("Title or price not found for a game")
 
-# Armazene os dados em um arquivo CSV
+#Filtra somente o nome do jogo e o preço atual e salva em um arquivo CSV
 import csv
 
-with open('xbox_sales.csv', 'w', newline='') as file:
+with open('catalog.csv', 'w', newline='') as file:
     writer = csv.writer(file)
     writer.writerow(["Title", "Original Price", "Current Price"])
     for game in catalog:
         writer.writerow(game)
 
-        
+import pandas as pd
+import re
+import chardet
+
+rawdata = open('xbox_sales.csv', 'rb').read()
+result = chardet.detect(rawdata)
+print(result['encoding'])
+
+df = pd.read_csv('xbox_sales.csv', encoding=result['encoding'])
+
+# Create a new DataFrame with only the game title and current price
+df['Current Price'] = df['Current Price'].apply(lambda x: x.split('Agora por')[-1] if 'Agora por' in x else 'N/A')
+na_prices = df[df['Current Price'] == 'N/A']
+print(na_prices)
+new_df = df[['Title', 'Current Price']]
+
+# Print the game title and current price
+for index, row in new_df.iterrows():
+    print(f"Jogo: {row['Title']} Preço: {row['Current Price']}")
+
+#reescreve o arquivo CSV com os dados filtrados
+new_df.to_csv('xbox_sales.csv', index=False)
