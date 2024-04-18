@@ -1,6 +1,8 @@
 from selenium import webdriver
 from bs4 import BeautifulSoup
 import time
+import pandas as pd
+import re
 
 # Inicialize o driver do navegador (você precisa do driver correto para o seu navegador instalado, neste exemplo, usamos o Chrome)
 driver = webdriver.Chrome()
@@ -9,7 +11,7 @@ driver = webdriver.Chrome()
 driver.get('https://www.xbox.com/pt-br/promotions/sales/sales-and-specials?xr=shellnav')
 
 # Aguarde o JavaScript ser executado
-time.sleep(15)
+time.sleep(5)
 
 # Obtenha o conteúdo da página
 html = driver.page_source
@@ -46,25 +48,14 @@ with open('catalog.csv', 'w', newline='') as file:
     for game in catalog:
         writer.writerow(game)
 
-import pandas as pd
-import re
-import chardet
+# Read the file with the correct encoding
+df = pd.read_csv('catalog.csv', encoding='ISO-8859-1')
 
-rawdata = open('xbox_sales.csv', 'rb').read()
-result = chardet.detect(rawdata)
-print(result['encoding'])
+# Apply the transformations
+df['Current Price'] = df['Current Price'].apply(lambda x: re.findall(r'R\$\d+.\d+', x)[-1] if re.findall(r'R\$\d+.\d+', x) else 'N/A')
+df = df[['Title', 'Current Price']]
 
-df = pd.read_csv('xbox_sales.csv', encoding=result['encoding'])
+# export the dataframe to a new CSV file
+df.to_csv('catalog_cleaned.csv', index=False)
 
-# Create a new DataFrame with only the game title and current price
-df['Current Price'] = df['Current Price'].apply(lambda x: x.split('Agora por')[-1] if 'Agora por' in x else 'N/A')
-na_prices = df[df['Current Price'] == 'N/A']
-print(na_prices)
-new_df = df[['Title', 'Current Price']]
-
-# Print the game title and current price
-for index, row in new_df.iterrows():
-    print(f"Jogo: {row['Title']} Preço: {row['Current Price']}")
-
-#reescreve o arquivo CSV com os dados filtrados
-new_df.to_csv('xbox_sales.csv', index=False)
+print(df)
