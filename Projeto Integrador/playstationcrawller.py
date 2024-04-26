@@ -6,8 +6,8 @@ import re
 
 catalog = []
 img = []
-for i in range(1,98):  # 97 páginas
-    url = f'https://store.playstation.com/pt-br/category/dc464929-edee-48a5-bcd3-1e6f5250ae80/{i}'
+for i in range(1,59):  # 59 páginas
+    url = f'https://store.playstation.com/pt-br/category/dc464929-edee-48a5-bcd3-1e6f5250ae80/{i}?FULL_GAME=storeDisplayClassification'
     response = requests.get(url)
     print(f"Page {i} - Status code: {response.status_code}")
     tree = html.fromstring(response.content)
@@ -46,7 +46,7 @@ print(df)
 
 
 import numpy as np
-#filra os jogos com preço abaixo de 50
+#filra os jogos com preço abaixo de 30
 if df['Price'].str.contains('R\$').any():
     df['Price'] = df['Price'].replace('N/A', np.nan)
     df['Price'] = df['Price'].str.replace('R$', '').str.replace(',', '.').astype(float)
