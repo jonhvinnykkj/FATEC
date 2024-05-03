@@ -59,4 +59,14 @@ def ex6():
 def ex7():
     for i in range(1000, 196, -3):
         print(i)
+
+
+
+maior = 0
+for i in range(0,100):
+    num = random.randint(0, 100)
+    print(num)
+    if num > maior:
+        maior = num
+print(f"O maior número gerado foi: {maior}")
         

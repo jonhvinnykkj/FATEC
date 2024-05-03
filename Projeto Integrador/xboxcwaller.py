@@ -5,54 +5,68 @@ import pandas as pd
 import re
 import csv
 
-driver = webdriver.Chrome()
-driver.get('https://www.xbox.com/pt-br/promotions/sales/sales-and-specials?xr=shellnav')
-time.sleep(5)
+def obter_dados_jogo():
+    driver = webdriver.Chrome()
+    driver.get('https://www.xbox.com/pt-br/promotions/sales/sales-and-specials?xr=shellnav')
+    time.sleep(5)
 
-html = driver.page_source
-soup = BeautifulSoup(html, 'html.parser')
-games = soup.find_all('div', class_='m-panes-product-placement-item')
+    html = driver.page_source
+    soup = BeautifulSoup(html, 'html.parser')
+    jogos = soup.find_all('div', class_='m-panes-product-placement-item')
+    return jogos
 
-catalog = []
-for game in games:
-    title_div = game.find('h3', class_='c-heading-4')
-    price_div = game.find('div', class_='c-price')
+def extrair_info_jogo(jogos):
+    catalogo = []
+    for jogo in jogos:
+        div_titulo = jogo.find('h3', class_='c-heading-4')
+        div_preco = jogo.find('div', class_='c-price')
 
-    if title_div and price_div:
-        title = title_div.text
-        original_price_div = price_div.find('s')
-        if original_price_div:
-            original_price = original_price_div.text
+        if div_titulo and div_preco:
+            titulo = div_titulo.text
+            div_preco_original = div_preco.find('s')
+            if div_preco_original:
+                preco_original = div_preco_original.text
+            else:
+                preco_original = "Preço original não encontrado"
+            preco_atual = div_preco.text
+            catalogo.append([titulo, preco_original, preco_atual])
         else:
-            original_price = "Original price not found"
-        current_price = price_div.text
-        catalog.append([title, original_price, current_price])
-    else:
-        print("Title or price not found for a game")
+            print("Título ou preço não encontrado para um jogo")
+    return catalogo
 
-with open('jogos_xbox.csv', 'w', newline='') as file:
-    writer = csv.writer(file)
-    writer.writerow(["Title", "Original Price", "Current Price"])
-    for game in catalog:
-        writer.writerow(game)
+def escrever_para_csv(nome_arquivo, cabecalhos, dados):
+    with open(nome_arquivo, 'w', newline='') as arquivo:
+        escritor = csv.writer(arquivo)
+        escritor.writerow(cabecalhos)
+        for linha in dados:
+            escritor.writerow(linha)
 
-df = pd.read_csv('jogos_xbox.csv', encoding='ISO-8859-1')
-df['Current Price'] = df['Current Price'].apply(lambda x: re.findall(r'R\$\d+.\d+', x)[-1] if re.findall(r'R\$\d+.\d+', x) else 'N/A')
-df = df[['Title', 'Current Price']]
-df.to_csv('jogos_xbox.csv', index=False)
+def limpar_dados_preco(df):
+    df['Current Price'] = df['Current Price'].apply(lambda x: re.findall(r'R\$\d+.\d+', x)[-1] if re.findall(r'R\$\d+.\d+', x) else 'N/A')
+    df = df[['Title', 'Current Price']]
+    df.to_csv('jogos_xbox.csv', index=False)
+    return df
 
-print(df)
-
-
-#envia as imagens para um arquivo csv chamado img.csv
-with open('imagens_xbox.csv', 'w', newline='') as file:
-    writer = csv.writer(file)
-    writer.writerow(["Image"])
-    for game in games:
-        img = game.find('img')
+def obter_imagens(jogos):
+    imagens = []
+    for jogo in jogos:
+        img = jogo.find('img')
         if img:
-            writer.writerow([img['src']])
+            imagens.append([img['src']])
         else:
-            writer.writerow(["Image not found"])
+            imagens.append(["Imagem não encontrada"])
+    return imagens
 
-time.sleep(2)
+def principal():
+    jogos = obter_dados_jogo()
+    catalogo = extrair_info_jogo(jogos)
+    escrever_para_csv('jogos_xbox.csv', ["Title", "Original Price", "Current Price"], catalogo)
+    df = pd.read_csv('jogos_xbox.csv', encoding='ISO-8859-1')
+    df = limpar_dados_preco(df)
+    print(df)
+    imagens = obter_imagens(jogos)
+    escrever_para_csv('imagens_xbox.csv', ["Image"], imagens)
+    time.sleep(2)
+
+if __name__ == "__main__":
+    principal()
